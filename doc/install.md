@@ -22,12 +22,22 @@ yum install mariadb mariadb-server python2-PyMySQL
 2. 创建并修改/etc/my.cnf.d/openstack.cnf文件，并添加如下内容
 ```
 [mysqld]
-bind-address = 10.0.0.11
+# 监听地址,0.0.0.0设置为全部可以监听
+bind-address = 0.0.0.0
 
+# 默认存储引擎innodb
 default-storage-engine = innodb
+
+# 设置独享的表空间，如果不设置，会是共享表空间
 innodb_file_per_table = on
+
+# 最大连接数
 max_connections = 4096
+
+# 校对规则
 collation-server = utf8_general_ci
+
+# 数据库建库字符集
 character-set-server = utf8
 ```
 新增[mysql]字段，并将bind-address设置为管理节点地址，并将编码方式设置未utf8
