@@ -32,9 +32,11 @@ character-set-server = utf8
 ```
 新增[mysql]字段，并将bind-address设置为管理节点地址，并将编码方式设置未utf8
 
-3. 将mysql设置为开机启动
+3. 启动服务，并设置为开机启动
 ```
+＃ 设置为开机启动
 systemctl enable mariadb.service
+＃　启动服务
 systemctl start mariadb.service
 
 ```
