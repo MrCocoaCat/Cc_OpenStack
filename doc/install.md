@@ -106,4 +106,32 @@ yum upgrade
 ```
 yum install python-openstackclient
 ```
+4. RHEL and CentOS 默认启动了 SELinux 安装openstack-selinux为openstack服务器自动管理安全策略
+```
+yum install openstack-selinux
+```
+####　消息队列RabbitMQ
+OpenStack使用消息队列来协调服务之间的操作和状态信息。
+消息队列服务通常在**控制器节点**上运行。OpenStack支持多个消息队列服务，包括RabbitMQ、Qpid和ZeroMQ。但是，大多数penStack的发行版都支持特定的消息队列服务。因为大多数发行版均支持RabbitMQ消息队列服务，故安装RabbitMQ消息队列
+1. 安装包
+```
+yum install rabbitmq-server
+```
+
+2. 启动消息队列并设置为开机启动
+```
+systemctl enable rabbitmq-server.service
+systemctl start rabbitmq-server.service
+```
+3. 添加openstack用户
+```
+rabbitmqctl add_user openstack RABBIT_PASS
+```
+RABBIT_PASS 替换为合适的密码
+
+4. 许可设定，未openstack用户添加读写权限
+```
+rabbitmqctl set_permissions openstack ".*" ".*" ".*"
+```
+
 ### 安装Identity service
