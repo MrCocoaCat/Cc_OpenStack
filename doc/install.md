@@ -134,4 +134,24 @@ RABBIT_PASS 替换为合适的密码
 rabbitmqctl set_permissions openstack ".*" ".*" ".*"
 ```
 
+#### 安装Memcached
+服务的身份服务身份验证机制使用Memcached缓存令牌。memcached服务通常在**控制器节点**上运行。
+
+1. 安装相应软件包
+```
+yum install memcached python-memcached
+```
+
+2. 编写文件/etc/sysconfig/memcached
+确定其使用的是controller节点的IP,以使其他节点可以访问控制网络
+
+
+3. 开启Memcached服务并设为开机启动
+
+```
+systemctl enable memcached.service
+systemctl start memcached.service
+```
+
+
 ### 安装Identity service
