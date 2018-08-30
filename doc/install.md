@@ -43,7 +43,6 @@ systemctl enable chronyd.service
 systemctl start chronyd.service
 ```
 
-
 #### SQL 数据库
 大多数OpenStack服务使用SQL数据库来存储信息。数据库通常在controller节点上运行。本指南中的过程根据发行版使用MariaDB或MySQL。
 
@@ -91,7 +90,7 @@ mysql_secure_installation
 
 [SQL database](https://docs.openstack.org/install-guide/environment-sql-database.html)
 
-#### 安装openstack包
+#### 安装openstack相关包
 1. 安装包
 ```
 yum install centos-release-openstack-queens
@@ -163,7 +162,7 @@ OpenStack服务可以使用Etcd，这是一种分布式可靠的键值存储，�
 ```
 yum install etcd
 ```
-2. Edit the /etc/etcd/etcd.conf file and set the ETCD_INITIAL_CLUSTER, ETCD_INITIAL_ADVERTISE_PEER_URLS, ETCD_ADVERTISE_CLIENT_URLS, ETCD_LISTEN_CLIENT_URLS to the management IP address of the controller node to enable access by other nodes via the management network:
+2. 编写/etc/etcd/etcd.conf 文件并设置以下字段  ETCD_INITIAL_CLUSTER, ETCD_INITIAL_ADVERTISE_PEER_URLS, ETCD_ADVERTISE_CLIENT_URLS, ETCD_LISTEN_CLIENT_URLS．使其他节点可以连接值管理网络
 ```
 #[Member]
 ETCD_DATA_DIR="/var/lib/etcd/default.etcd"
@@ -177,10 +176,69 @@ ETCD_INITIAL_CLUSTER="controller=http://10.0.0.11:2380"
 ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster-01"
 ETCD_INITIAL_CLUSTER_STATE="new"
 ```
+其中10.0.0.11为控制节点的网络，需改成自己的IP地址
 3. 启动服务
 ```
 systemctl enable etcd
 systemctl start etcd
 ```
 
-### 安装Identity service
+### 安装keysnote（Identity service）
+
+##### 在安装和配置认证服务之前，首先确保已创建数据库
+1. 使用root帐号连接数据库
+```
+mysql -u root -p
+```
+2. 创建keystone数据库
+```
+MariaDB [(none)]> CREATE DATABASE keystone;
+```
+3. 进行授权
+```
+MariaDB [(none)]> GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'localhost' \
+IDENTIFIED BY 'KEYSTONE_DBPASS';
+MariaDB [(none)]> GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'%' \
+IDENTIFIED BY 'KEYSTONE_DBPASS';
+```
+将KEYSTONE_DBPASS替换为合适的密码
+
+##### 安装和配置组件
+1. 安装包
+```
+yum install openstack-keystone httpd mod_wsgi
+```
+2. 编写 /etc/keystone/keystone.conf 文件并完善以下字段
+
+* 在[database]字段中, 设置数据库权限:
+```
+[database]
+# ...
+connection = mysql+pymysql://keystone:KEYSTONE_DBPASS@controller/keystone
+```
+将KEYSTONE_DBPASS 换成自己的database密码
+* 在 [token]字段中, 配置Fernet令牌提供程序:
+```
+[token]
+# ...
+provider = fernet
+```
+3. 填充标识服务数据库
+```
+su -s /bin/sh -c "keystone-manage db_sync" keystone
+```
+4. 初始化Fernet密钥存储库:
+```
+# keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
+# keystone-manage credential_setup --keystone-user keystone --keystone-group keystone
+```
+5. 引导标识服务
+```
+# keystone-manage bootstrap --bootstrap-password ADMIN_PASS \
+  --bootstrap-admin-url http://controller:5000/v3/ \
+  --bootstrap-internal-url http://controller:5000/v3/ \
+  --bootstrap-public-url http://controller:5000/v3/ \
+  --bootstrap-region-id RegionOne
+
+```
+将ADMIN_PASS替换为合适的密码
