@@ -242,3 +242,31 @@ su -s /bin/sh -c "keystone-manage db_sync" keystone
 
 ```
 将ADMIN_PASS替换为合适的密码
+##### 配置Apache HTTP 服务
+
+1. 编辑 /etc/httpd/conf/httpd.conf 文件并且配置ServerName
+```
+ServerName controller
+```
+2. 为 /usr/share/keystone/wsgi-keystone.conf 文件创建链接
+```
+ln -s /usr/share/keystone/wsgi-keystone.conf /etc/httpd/conf.d/
+```
+
+##### 安装完成启动服务
+1. 启动 Apache HTTP 服务并设置为开机启动
+```
+systemctl enable httpd.service
+systemctl start httpd.service
+```
+2. 配置管理账户
+
+```
+$ export OS_USERNAME=admin
+$ export OS_PASSWORD=ADMIN_PASS
+$ export OS_PROJECT_NAME=admin
+$ export OS_USER_DOMAIN_NAME=Default
+$ export OS_PROJECT_DOMAIN_NAME=Default
+$ export OS_AUTH_URL=http://controller:35357/v3
+$ export OS_IDENTITY_API_VERSION=3
+```
