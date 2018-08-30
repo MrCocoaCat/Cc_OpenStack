@@ -143,7 +143,12 @@ yum install memcached python-memcached
 ```
 
 2. 编写文件/etc/sysconfig/memcached
-确定其使用的是controller节点的IP,以使其他节点可以访问控制网络
+确定服务使用的是controller节点的management　IP地址,以使其他节点可以通过management网络访问控制节点
+
+```
+OPTIONS="-l 127.0.0.1,::1,controller"
+```
+>更改之前的OPTIONS="-l 127.0.0.1,::1".
 
 
 3. 开启Memcached服务并设为开机启动
@@ -152,6 +157,30 @@ yum install memcached python-memcached
 systemctl enable memcached.service
 systemctl start memcached.service
 ```
-
+#### Etcd
+OpenStack服务可以使用Etcd，这是一种分布式可靠的键值存储，用于分布式键锁定、存储配置、跟踪服务实时性和其他场景。
+1. 安装相应软件包
+```
+yum install etcd
+```
+2. Edit the /etc/etcd/etcd.conf file and set the ETCD_INITIAL_CLUSTER, ETCD_INITIAL_ADVERTISE_PEER_URLS, ETCD_ADVERTISE_CLIENT_URLS, ETCD_LISTEN_CLIENT_URLS to the management IP address of the controller node to enable access by other nodes via the management network:
+```
+#[Member]
+ETCD_DATA_DIR="/var/lib/etcd/default.etcd"
+ETCD_LISTEN_PEER_URLS="http://10.0.0.11:2380"
+ETCD_LISTEN_CLIENT_URLS="http://10.0.0.11:2379"
+ETCD_NAME="controller"
+#[Clustering]
+ETCD_INITIAL_ADVERTISE_PEER_URLS="http://10.0.0.11:2380"
+ETCD_ADVERTISE_CLIENT_URLS="http://10.0.0.11:2379"
+ETCD_INITIAL_CLUSTER="controller=http://10.0.0.11:2380"
+ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster-01"
+ETCD_INITIAL_CLUSTER_STATE="new"
+```
+3. 启动服务
+```
+systemctl enable etcd
+systemctl start etcd
+```
 
 ### 安装Identity service
