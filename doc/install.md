@@ -1,4 +1,6 @@
-利用Devstack 可以安装快速openstack，但为了更好的理清openstack，本文使用手动安装.安装版本为Queue 版本，最小的openstack需安装以下组件：
+利用Devstack 可以安装快速openstack，但为了更好的理清openstack，本文使用手动安装。
+参考[](https://docs.openstack.org/install-guide/)
+安装版本为**Queue** 版本，最小的openstack需安装以下组件：
 
 *   Identity service – [keystone installation for Queens](https://docs.openstack.org/keystone/queens/install/)
 *   Image service – [glance installation for Queens](https://docs.openstack.org/glance/queens/install/)
@@ -10,6 +12,37 @@
 *   Dashboard – [horizon installation for Queens](https://docs.openstack.org/horizon/queens/install/)
 *   Block Storage service – [cinder installation for Queens](https://docs.openstack.org/cinder/queens/install/)
 ### 安装环境
+
+#### Network Time Protocol (NTP)
+1. 安装包
+```
+yum install chrony
+
+```
+
+2. 编辑chrony.conf文件
+在/etc/chrony.conf文件中写入以下内容
+
+```
+server NTP_SERVER iburst
+```
+NTP_SERVER 为主机名或IP地址
+
+3. 保证其他服务节点可以访问控制节点的chrony daemon,需要在同一个chrony.conf文件中写入以下内容
+
+```
+allow 10.0.0.0/24
+```
+
+将10.0.0.0/24　替换为相对的子网
+
+４．重启NT服务
+
+```
+systemctl enable chronyd.service
+systemctl start chronyd.service
+```
+
 
 #### SQL 数据库
 大多数OpenStack服务使用SQL数据库来存储信息。数据库通常在controller节点上运行。本指南中的过程根据发行版使用MariaDB或MySQL。
@@ -56,8 +89,21 @@ systemctl start mariadb.service
 mysql_secure_installation
 ```
 
-
 [SQL database](https://docs.openstack.org/install-guide/environment-sql-database.html)
 
+#### 安装openstack包
+1. 安装包
+```
+yum install centos-release-openstack-queens
+```
 
+2. 更新软件包
+```
+yum upgrade
+```
+
+3. 安装OpenStack client
+```
+yum install python-openstackclient
+```
 ### 安装Identity service
