@@ -13,11 +13,21 @@
 *   Block Storage service – [cinder installation for Queens](https://docs.openstack.org/cinder/queens/install/)
 ### 安装环境
 
-#### Network Time Protocol (NTP)
+#### 设置主机名及IP
+
+1. 编辑 /etc/hosts
+
+```
+IP   controller
+```
+即IP地址，域名，主机名
+其中域名可以省略，不要删除127.0.0.1项。
+> *192.168.125.115   controller*
+
+#### 网络时间同步协议(NTP)
 1. 安装包
 ```
 yum install chrony
-
 ```
 
 2. 编辑chrony.conf文件
@@ -27,14 +37,15 @@ yum install chrony
 server NTP_SERVER iburst
 ```
 NTP_SERVER 为主机名或IP地址
+> *server 192.168.125.115 iburst*
 
 3. 保证其他服务节点可以访问控制节点的chrony daemon,需要在同一个chrony.conf文件中写入以下内容
 
 ```
 allow 10.0.0.0/24
 ```
-
 将10.0.0.0/24　替换为相对的子网
+> *allow 192.168.125.0/24*
 
 ４．重启NT服务
 
@@ -51,10 +62,12 @@ systemctl start chronyd.service
 ```
 yum install mariadb mariadb-server python2-PyMySQL
 ```
-2. 创建并修改/etc/my.cnf.d/openstack.cnf文件，并添加如下内容
+2. 创建并修改/etc/my.cnf.d/openstack.cnf文件，并新增[mysql]字段，并将bind-address设置为管理节点地址，并将编码方式设置未utf8,修改内容如下
+
 ```
 [mysqld]
 # 监听地址,0.0.0.0设置为全部可以监听
+# 可以设置未controller的IP地址
 bind-address = 0.0.0.0
 
 # 默认存储引擎innodb
@@ -72,7 +85,7 @@ collation-server = utf8_general_ci
 # 数据库建库字符集
 character-set-server = utf8
 ```
-新增[mysql]字段，并将bind-address设置为管理节点地址，并将编码方式设置未utf8
+
 
 3. 启动服务，并设置为开机启动
 ```
@@ -105,6 +118,7 @@ yum upgrade
 ```
 yum install python-openstackclient
 ```
+
 4. RHEL and CentOS 默认启动了 SELinux 安装openstack-selinux为openstack服务器自动管理安全策略
 ```
 yum install openstack-selinux
@@ -166,17 +180,18 @@ yum install etcd
 ```
 #[Member]
 ETCD_DATA_DIR="/var/lib/etcd/default.etcd"
-ETCD_LISTEN_PEER_URLS="http://10.0.0.11:2380"
-ETCD_LISTEN_CLIENT_URLS="http://10.0.0.11:2379"
+ETCD_LISTEN_PEER_URLS="http://192.168.125.115:2380"
+ETCD_LISTEN_CLIENT_URLS="http://192.168.125.115:2379"
 ETCD_NAME="controller"
 #[Clustering]
-ETCD_INITIAL_ADVERTISE_PEER_URLS="http://10.0.0.11:2380"
-ETCD_ADVERTISE_CLIENT_URLS="http://10.0.0.11:2379"
-ETCD_INITIAL_CLUSTER="controller=http://10.0.0.11:2380"
+ETCD_INITIAL_ADVERTISE_PEER_URLS="http://192.168.125.115:2380"
+ETCD_ADVERTISE_CLIENT_URLS="http://192.168.125.115:2379"
+ETCD_INITIAL_CLUSTER="controller=http://192.168.125.115:2380"
 ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster-01"
 ETCD_INITIAL_CLUSTER_STATE="new"
 ```
 其中10.0.0.11为控制节点的网络，需改成自己的IP地址
+
 3. 启动服务
 ```
 systemctl enable etcd
@@ -198,10 +213,15 @@ MariaDB [(none)]> CREATE DATABASE keystone;
 ```
 MariaDB [(none)]> GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'localhost' \
 IDENTIFIED BY 'KEYSTONE_DBPASS';
+
 MariaDB [(none)]> GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'%' \
 IDENTIFIED BY 'KEYSTONE_DBPASS';
 ```
-将KEYSTONE_DBPASS替换为合适的密码
+可将其中的KEYSTONE_DBPASS替换为合适的密码
+使用如下命令可以差数据库状态
+```
+MariaDB [(none)]> show databases;
+```
 
 ##### 安装和配置组件
 1. 安装包
@@ -217,7 +237,7 @@ yum install openstack-keystone httpd mod_wsgi
 connection = mysql+pymysql://keystone:KEYSTONE_DBPASS@controller/keystone
 ```
 将KEYSTONE_DBPASS 换成自己的database密码
-* 在 [token]字段中, 配置Fernet令牌提供程序:
+* 在 [token]字段中, 配置令牌提供者:
 ```
 [token]
 # ...
@@ -227,14 +247,18 @@ provider = fernet
 ```
 su -s /bin/sh -c "keystone-manage db_sync" keystone
 ```
-4. 初始化Fernet密钥存储库:
+4. 初始化Fernet密钥存储库
+
 ```
-# keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
-# keystone-manage credential_setup --keystone-user keystone --keystone-group keystone
+keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
+```
+
+```
+keystone-manage credential_setup --keystone-user keystone --keystone-group keystone
 ```
 5. 引导标识服务
 ```
-# keystone-manage bootstrap --bootstrap-password ADMIN_PASS \
+keystone-manage bootstrap --bootstrap-password ADMIN_PASS \
   --bootstrap-admin-url http://controller:5000/v3/ \
   --bootstrap-internal-url http://controller:5000/v3/ \
   --bootstrap-public-url http://controller:5000/v3/ \
