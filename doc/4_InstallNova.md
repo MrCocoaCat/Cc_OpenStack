@@ -239,4 +239,4 @@ yum install openstack-nova-api openstack-nova-conductor \
 
 ```
 
-2.
+2. 配置/etc/nova/nova.conf文件
