@@ -705,5 +705,66 @@ $ openstack role add --project service --user placement admin
 
 ```
 
+7. 在服务目录创建Placement API
 
-7. 7.创建在服务目录创建Placement API服
+```
+$ openstack service create --name placement --description "Placement API" placement
++-------------+----------------------------------+
+| Field       | Value                            |
++-------------+----------------------------------+
+| description | Placement API                    |
+| enabled     | True                             |
+| id          | 2d1a27022e6e4185b86adac4444c495f |
+| name        | placement                        |
+| type        | placement                        |
++-------------+----------------------------------+
+```
+
+8. 创建Placement API服务端点
+
+```
+$ openstack endpoint create --region RegionOne placement public http://controller:8778
++--------------+----------------------------------+
+| Field        | Value                            |
++--------------+----------------------------------+
+| enabled      | True                             |
+| id           | 2b1b2637908b4137a9c2e0470487cbc0 |
+| interface    | public                           |
+| region       | RegionOne                        |
+| region_id    | RegionOne                        |
+| service_id   | 2d1a27022e6e4185b86adac4444c495f |
+| service_name | placement                        |
+| service_type | placement                        |
+| url          | http://controller:8778           |
++--------------+----------------------------------+
+
+$ openstack endpoint create --region RegionOne placement internal http://controller:8778
++--------------+----------------------------------+
+| Field        | Value                            |
++--------------+----------------------------------+
+| enabled      | True                             |
+| id           | 02bcda9a150a4bd7993ff4879df971ab |
+| interface    | internal                         |
+| region       | RegionOne                        |
+| region_id    | RegionOne                        |
+| service_id   | 2d1a27022e6e4185b86adac4444c495f |
+| service_name | placement                        |
+| service_type | placement                        |
+| url          | http://controller:8778           |
++--------------+----------------------------------+
+
+$ openstack endpoint create --region RegionOne placement admin http://controller:8778
++--------------+----------------------------------+
+| Field        | Value                            |
++--------------+----------------------------------+
+| enabled      | True                             |
+| id           | 3d71177b9e0f406f98cbff198d74b182 |
+| interface    | admin                            |
+| region       | RegionOne                        |
+| region_id    | RegionOne                        |
+| service_id   | 2d1a27022e6e4185b86adac4444c495f |
+| service_name | placement                        |
+| service_type | placement                        |
+| url          | http://controller:8778           |
++--------------+----------------------------------+
+```
