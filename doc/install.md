@@ -458,4 +458,84 @@ $ openstack endpoint create --region RegionOne \
 ```
 yum install openstack-glance
 ```
-2. Edit the /etc/glance/glance-api.conf file and complete the following actions:
+2. 编辑 /etc/glance/glance-api.conf 文件进行如下操作：
+
+* 在[database]字段, 设置数据库权限:
+```
+[database]
+# ...
+connection = mysql+pymysql://glance:GLANCE_DBPASS@controller/glance
+```
+可将GLANCE_DBPASS更改为合适密码
+
+* 在 [keystone_authtoken] 和[paste_deploy]字段,配置身份服务访问:
+```
+[keystone_authtoken]
+# ...
+auth_uri = http://controller:5000
+auth_url = http://controller:5000
+memcached_servers = controller:11211
+auth_type = password
+project_domain_name = Default
+user_domain_name = Default
+project_name = service
+username = glance
+password = GLANCE_PASS
+
+[paste_deploy]
+# ...
+flavor = keystone
+```
+* 在 [glance_store] 字段, 设置本地文件系统及镜像存储位置
+```
+[glance_store]
+# ...
+stores = file,http
+default_store = file
+filesystem_store_datadir = /var/lib/glance/images/
+```
+3. 编写 /etc/glance/glance-registry.conf 文件并完成以下操作
+
+* 在 [database]字段, 设置数据库接入
+
+```
+[database]
+# ...
+connection = mysql+pymysql://glance:GLANCE_DBPASS@controller/glance
+```
+
+* 在 [keystone_authtoken] 及[paste_deploy] 字段, 设置用户服务
+
+```
+[keystone_authtoken]
+# ...
+auth_uri = http://controller:5000
+auth_url = http://controller:5000
+memcached_servers = controller:11211
+auth_type = password
+project_domain_name = Default
+user_domain_name = Default
+project_name = service
+username = glance
+password = GLANCE_PASS
+
+[paste_deploy]
+# ...
+flavor = keystone
+```
+GLANCE_PASS 可以替换为可用的密码
+
+4. 填充image服务数据库
+
+```
+su -s /bin/sh -c "glance-manage db_sync" glance
+```
+
+#####　结束安装并配置
+
+```
+# systemctl enable openstack-glance-api.service \
+  openstack-glance-registry.service
+# systemctl start openstack-glance-api.service \
+  openstack-glance-registry.service
+```
