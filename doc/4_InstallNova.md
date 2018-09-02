@@ -240,3 +240,158 @@ yum install openstack-nova-api openstack-nova-conductor \
 ```
 
 2. 配置/etc/nova/nova.conf文件
+* 在[DEFAULT]字段中,设置API
+```
+[DEFAULT]
+# ...
+enabled_apis = osapi_compute,metadata
+```
+* 在 [api_database]及[database]字段设置数据库接入许可
+
+```
+[api_database]
+# ...
+connection = mysql+pymysql://nova:NOVA_DBPASS@controller/nova_api
+
+[database]
+# ...
+connection = mysql+pymysql://nova:NOVA_DBPASS@controller/nova
+```
+
+* 在[DEFAULT]字段, 设置RabbitMQ消息队列接入权限
+```
+[DEFAULT]
+# ...
+transport_url = rabbit://openstack:RABBIT_PASS@controller
+```
+* 在[api]及[keystone_authtoken]字段中,设置身份验证服务
+```
+[api]
+# ...
+auth_strategy = keystone
+
+[keystone_authtoken]
+# ...
+auth_url = http://controller:5000/v3
+memcached_servers = controller:11211
+auth_type = password
+project_domain_name = default
+user_domain_name = default
+project_name = service
+username = nova
+password = NOVA_PASS
+```
+* 在[DEFAULT]字段中,设置 my_ip 选项，为控制节点的IP地址
+
+```
+[DEFAULT]
+# ...
+my_ip = 192.168.125.115
+```
+
+* 在[DEFAULT]字段,开启网络服务
+
+```
+[DEFAULT]
+# ...
+use_neutron = True
+firewall_driver = nova.virt.firewall.NoopFirewallDriver
+
+```
+* 在 [vnc] 字段中，设置  VNC代理为控制节点的IP
+
+```
+[vnc]
+enabled = true
+# ...
+server_listen = $my_ip
+server_proxyclient_address = $my_ip
+```
+
+* 在[glance] 字段, 设置镜像服务API:
+
+```
+[glance]
+# ...
+api_servers = http://controller:9292
+```
+
+* 在[oslo_concurrency] 字段, 配置 lock 路径
+
+```
+[oslo_concurrency]
+# ...
+lock_path = /var/lib/nova/tmp
+
+```
+
+* 由于软件包的一个bug，需要在/etc/httpd/conf.d/00-nova-placement-api.conf文件中添加如下配置
+```
+<Directory /usr/bin>
+   <IfVersion >= 2.4>
+      Require all granted
+   </IfVersion>
+   <IfVersion < 2.4>
+      Order allow,deny
+      Allow from all
+   </IfVersion>
+</Directory>
+```
+
+* 重新http服务
+```
+systemctl restart httpd
+```
+
+3. 同步nova-api数据库
+
+```
+su -s /bin/sh -c "nova-manage api_db sync" nova
+```
+
+>出现警告  /usr/lib/python2.7/site-packages/oslo_db/sqlalchemy/enginefacade.py:332: NotSupportedWarning: Configuration option(s) ['use_tpool'] not supported
+  exception.NotSupportedWarning
+  将.py文件中332的语句注释掉
+
+
+4. 注册cell0 数据库
+
+```
+su -s /bin/sh -c "nova-manage cell_v2 map_cell0" nova
+```
+
+5. 创建cell1 cell
+
+```
+su -s /bin/sh -c "nova-manage cell_v2 create_cell --name=cell1 --verbose" nova 109e1d4b-536a-40d0-83c6-5f121b82b650
+```
+
+6. 同步nova数据库
+
+```
+su -s /bin/sh -c "nova-manage db sync" nova
+```
+
+
+7. 验证 nova、 cell0、 cell1数据库是否注册正确
+
+```
+# nova-manage cell_v2 list_cells
++-------+--------------------------------------+
+| Name  | UUID                                 |
++-------+--------------------------------------+
+| cell1 | 109e1d4b-536a-40d0-83c6-5f121b82b650 |
+| cell0 | 00000000-0000-0000-0000-000000000000 |
++-------+--------------------------------------+
+```
+##### 完成安装
+
+启动服务及至设置开机启动
+```
+# systemctl enable openstack-nova-api.service \
+  openstack-nova-consoleauth.service openstack-nova-scheduler.service \
+  openstack-nova-conductor.service openstack-nova-novncproxy.service
+# systemctl start openstack-nova-api.service \
+  openstack-nova-consoleauth.service openstack-nova-scheduler.service \
+  openstack-nova-conductor.service openstack-nova-novncproxy.service
+```
