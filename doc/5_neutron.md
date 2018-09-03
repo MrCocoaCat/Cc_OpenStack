@@ -307,3 +307,85 @@ net.bridge.bridge-nf-call-ip6tables
 # ...
 interface_driver = linuxbridge
 ```
+
+###### 配置 DHCP agent
+
+ DHCP agent为虚拟网络 提供 DHCP 服务
+ 编写 /etc/neutron/dhcp_agent.ini 文件，在[DEFAULT] 字段, 配置Linux桥接接口驱动程序Dnsmasq DHCP驱动程序，并启用隔离的元数据，以便提供者网络上的实例可以通过网络访问元数据
+ ```
+ [DEFAULT]
+# ...
+interface_driver = linuxbridge
+dhcp_driver = neutron.agent.linux.dhcp.Dnsmasq
+enable_isolated_metadata = true
+ ```
+
+
+
+#####　配置metadata agent
+
+ 编辑/etc/neutron/metadata_agent.inif文件，在[DEFAULT]字段
+
+```
+[DEFAULT]
+# ...
+nova_metadata_host = controller
+metadata_proxy_shared_secret = METADATA_SECRET
+
+```
+
+##### 配置 Compute service 以使用 Networking service
+
+编辑/etc/nova/nova.conf文件，加入以下内容
+```
+[neutron]
+# ...
+url = http://controller:9696
+auth_url = http://controller:35357
+auth_type = password
+project_domain_name = default
+user_domain_name = default
+region_name = RegionOne
+project_name = service
+username = neutron
+password = NEUTRON_PASS
+service_metadata_proxy = true
+metadata_proxy_shared_secret = METADATA_SECRET
+```
+
+
+##### 结束安装并配置
+1. 网络服务初始化脚本期望有一个符号链接/etc/neutron/plugin.ini指向ML2插件配置文件/etc/neutron/ plugins/ml2/ml2_con.ini。如果这个符号链接不存在，使用以下命令创建:
+```
+ln -s /etc/neutron/plugins/ml2/ml2_conf.ini /etc/neutron/plugin.ini
+```
+
+2. 同步数据库
+
+```
+su -s /bin/sh -c "neutron-db-manage --config-file /etc/neutron/neutron.conf \
+  --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade head" neutron
+```
+
+3. 重启计算API服务
+
+```
+# systemctl restart openstack-nova-api.service
+```
+
+4. 开启网络服务，并设置其开机启动
+
+```
+# systemctl enable neutron-server.service \
+ neutron-linuxbridge-agent.service neutron-dhcp-agent.service \
+ neutron-metadata-agent.service
+# systemctl start neutron-server.service \
+ neutron-linuxbridge-agent.service neutron-dhcp-agent.service \
+ neutron-metadata-agent.service
+```
+ 针对网络选项2, 需要开启 layer-3 服务
+
+ ```
+# systemctl enable neutron-l3-agent.service
+# systemctl start neutron-l3-agent.service
+ ```
