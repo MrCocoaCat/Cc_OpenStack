@@ -59,4 +59,17 @@ OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = "Default"
 
 ```
 OPENSTACK_KEYSTONE_DEFAULT_ROLE = "user"
+
+```
+
+3. 配置
+/etc/httpd/conf.d/openstack-dashboard.conf
+加入以下内容
+```
+WSGIApplicationGroup %{GLOBAL}
+```
+#####　开启服务
+
+```
+systemctl restart httpd.service memcached.service
 ```
