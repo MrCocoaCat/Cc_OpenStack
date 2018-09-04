@@ -76,6 +76,44 @@ Memcached_servers = controller1:11211 controller2:11211 controller3:11211
 * Galera Cluster for MySQL
 * MariaDB Galera Cluster: Galera集群的MariaDB实现，该集群通常在基于Red Hat发行版的环境中得到支持。
 * Percona XtraDB Cluster
-#### 高可用数据库
+#### 高可用消息队列
 为了协调进入系统的作业的执行，大多数OpenStack组件都需要一个符合AMQP(高级消息队列协议)的消息总线。
 OpenStack安装中最流行的AMQP实现是RabbitMQ。
+RabbitMQ节点在应用程序层和基础结构层上失败。应用层由多个AMQP主机的oslo配置选项控制。如果AMQP节点失败，应用程序将重新连接到指定的重新连接间隔内配置的下一个节点。
+如果AMQP节点失败，应用程序将重新连接到指定的重新连接间隔内配置的下一个节点。
+
+指定的重新连接间隔构成其SLA。
+在基础架构层，SLA是RabbitMQ集群重新组装的时间。Mnesia管理器节点管理RabbitMQ相应资源。当它失败时，即为一个完整的AMQP集群停机时间间隔。通常，它的SLA不超过几分钟。
+如果另一个节点是RabbitMQ的相应Pacemaker资源的从属节点，则完全不会导致AMQP集群停机。
+使RabbitMQ服务高可用涉及以下步骤：
+1. 安装RabbitMQ
+2. 配置RabbitMQ为高可用队列
+3. 配置OpenStack服务使用RabbitMQ高可用队列
+##### 安装RabbitMQ
+
+##### 配置RabbitMQ为高可用队列
+以下服务或组件可以使用高可用队列
+* OpenStack Compute
+* OpenStack Block Storage
+* OpenStack Networking
+* Telemetry
+考虑一下，虽然交换器和绑定可以在单个节点丢失的情况下存活下来，但是队列和它们的消息不会因为队列及其内容位于一个节点上而消失。如果丢失这个节点，也会丢失队列。RabbitMQ中的镜像队列提高了服务的可用性，因为它对故障具有弹性。生产服务器应该运行(至少)三个RabbitMQ服务器，以进行测试和演示，但是只能运行两个服务器。在本节中，我们配置了两个节点，称为rabbit1和rabbit2。确保所有节点都具有相同的Erlang cookie文件。
+##### 配置OpenStack服务使用RabbitMQ高可用队列
+配置Openstack组件，以确保其至少使用两个RabbitMQ节点
+
+
+### 控制节点的配置
+OpenStack是一组作为HTTP(s) api公开给最终用户的服务。此外，对于您自己的内部使用，OpenStack需要一个SQL数据库服务器和AMQP代理。所有组件运行的物理服务器称为控制器。这个模块化的OpenStack体系结构允许您复制所有组件并在不同的控制器上运行它们。通过使所有组件冗余，可以使OpenStack高可用性成为可能。
+一般来说，我们可以将所有OpenStack组件分为三类:
+
+1. OpenStack api:使用python编写的HTTP(s)无状态服务的api，易于复制，并且很容易实现负载平衡。
+2. SQL关系数据库服务器提供其他组件使用的有状态类型。支持的数据库有MySQL、MariaDB和PostgreSQL。使SQL数据库冗余是很复杂的。
+3. 高级消息队列协议(AMQP)提供了OpenStack内部有状态通信服务。
+
+### 常见的部署架构
+我们推荐两种使OpenStack高可用的主要体系结构。在集群管理的服务集合中，体系结构各不相同。两者都使用集群管理器(如Pacemaker或Veritas)来协调跨一组机器的各种服务的操作。因为我们关注的是FOSS，所以我们将其称为“Pacemaker architectures”。
+传统上，Pacemaker architectures被定位为一个完整的解决方案。但是，随着OpenStack服务的成熟，它们越来越能够在活动/活动配置中运行，并且能够优雅地应对其所依赖的api的消失。
+考虑到这一点，一些供应商将起搏器的使用限制在必须以主动/被动模式操作的服务（cinder-volume）、具有多个状态的服务(for example, Galera),和具有复杂引导过程的服务(such as RabbitMQ)。
+大多数服务，不需要真正的编排，都是由每个节点上的系统来处理的。这种方法避免了与集群协调服务升级或位置更改的需要，并且具有更容易伸缩的额外优势。然而，它通常需要添加一个企业监控解决方案，例如Nagios或Sensu，用于那些希望进行集中故障报告的人。
+
+#### Pacemaker architecture

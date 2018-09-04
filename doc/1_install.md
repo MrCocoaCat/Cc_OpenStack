@@ -126,6 +126,7 @@ yum install openstack-selinux
 ####　消息队列RabbitMQ
 OpenStack使用消息队列来协调服务之间的操作和状态信息。
 消息队列服务通常在**控制器节点**上运行。OpenStack支持多个消息队列服务，包括RabbitMQ、Qpid和ZeroMQ。但是，大多数penStack的发行版都支持特定的消息队列服务。因为大多数发行版均支持RabbitMQ消息队列服务，故安装RabbitMQ消息队列
+
 1. 安装包
 ```
 yum install rabbitmq-server
