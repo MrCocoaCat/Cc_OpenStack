@@ -2,15 +2,7 @@
 
 []()http://xcodest.me/kolla-aio-install.html
 
-本指南逐步提供了使用Kolla在裸金属服务器或虚拟机上部署OpenStack的说明。根据操作人员的确切要求进行定量。
-
-在下面的内容中，我们以 Kolla & Kolla-ansible 的组合，主要分 3 步介绍如何轻松部署出一套 OpenStack 环境。
-
-1. 环境依赖准备
-2. 使用 Kolla 构建镜像
-使用
-3. Kolla-ansible 部署 OpenStack
-
+##安装Kolla
 ### 环境依赖准备
 
 1. 更新依赖
@@ -24,7 +16,8 @@ pip install -U pip
 2. 安装依赖
 
 ```
-yum install python-devel  libffi-devel gcc openssl-devel libselinux-python
+yum install python-devel  libffi-devel gcc \
+openssl-devel libselinux-python
 ```
 3. 安装ansible
 
@@ -45,4 +38,18 @@ pipelining=True
 forks=100
 ```
 ### 安装Kolla-ansible
-1. 
+1. 安装kolla-ansible
+```
+pip install kolla-ansible
+```
+2. 复制 globals.yml及passwords.yml 至/etc/kolla directory
+```
+cp -r /usr/share/kolla-ansible/etc_examples/kolla /etc/
+
+```
+
+3. 复制 all-in-one 及 multinode 至当前文件夹
+```
+cp /usr/share/kolla-ansible/ansible/inventory/* .
+```
+### 安装Kolla
