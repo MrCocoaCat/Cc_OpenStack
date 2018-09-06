@@ -74,5 +74,50 @@ cp -r kolla-ansible/etc/kolla/* /etc/kolla
 cp kolla-ansible/ansible/inventory/* .
 ```
 
+## 准备安装
+### 清单文件
+下一步是准备我们的清单文件。库存是一个易于操作的文件，我们在其中指定节点角色和访问凭证。
+
+
+Kolla-Ansible附带all-in-one和multinode的清单文件。它们之间的区别是前者可以在本地主机上部署单个节点OpenStack。如果你需要分离主机或使用多个节点，编辑multinode:
+
+1. 编辑multinode的首个字段，其描述了环境的连接细节，例如：
+
+```
+[control]
+10.0.0.[10:12] ansible_user=ubuntu ansible_password=foobar ansible_become=true
+
+# Ansible supports syntax like [10:12] - that means 10, 11 and 12.
+# Become clause means "use sudo".
+
+[network:children]
+control
+
+# when you specify group_name:children, it will use contents of group specified.
+
+[compute]
+10.0.0.[13:14] ansible_user=ubuntu ansible_password=foobar ansible_become=true
+
+[monitoring]
+10.0.0.10
+
+# This group is for monitoring node. 监控节点
+# Fill it with one of the controllers' IP address or some others.
+
+[storage:children]
+compute
+
+[deployment]
+localhost       ansible_connection=local become=true
+
+# use localhost and sudo
+```
+
+2. 检查multinode配置是否正确，使用命令
+
+```
+ansible -i multinode all -m ping
+```
+
 []()https://docs.openstack.org/kolla-ansible/latest/user/quickstart.html
 []()http://xcodest.me/kolla-aio-install.html
