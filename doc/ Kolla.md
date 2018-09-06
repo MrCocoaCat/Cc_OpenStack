@@ -160,6 +160,65 @@ openstack_release: "master"
 * 网络设置
 
 Kolla-Ansible需要设置一些网络选项。我们需要设置OpenStack使用的网络接口。需要设置的第一个接口是“network_interface”。这是multiple管理类型网络的默认接口。
+```
+network_interface: "eth0"
+```
+需要的第二个接口用于Neutron个外部(或公共)网络，可以是vlan或flat，取决于网络是如何创建的。
+这个接口应该是活动的，没有IP地址。否则，实例将无法访问外部网络。
+```
+neutron_external_interface: "eth1"
+```
+更多网络设置问题可参考
+[Network overview](https://docs.openstack.org/kolla-ansible/latest/admin/production-architecture-guide.html#network-configuration)
+
+之后需要为管理者提供浮动IP,这个IP将由keepalived管理以提供高可用性，并且应该设置为在连接到network_interface的管理网络中不使用地址。
+
+```
+kolla_internal_vip_address: "10.1.0.250"
+```
+
+默认情况下，Kolla-Ansible提供了一个纯粹的计算套件，但它确实为大量的额外服务提供了支持。要启用它们，请将enable_*设置为“yes”。例如，要启用块存储服务:
+```
+enable_cinder: "yes"
+```
+
+## 部署
+
+ 在设置完成之后可以进行部署。首先需要进行基础的依赖关系。
+ 1. 为其设置引导服务器
+ ```
+ kolla-ansible -i ./multinode bootstrap-servers
+ ```
+2. 安装前进行检测
+```
+kolla-ansible -i ./multinode prechecks
+```
+
+3. 部署Openstack 环境
+
+```
+kolla-ansible -i ./multinode deploy
+```
+## 使用Openstack
+
+1. 安装基础的Openstack CLI客户端
+```
+pip install python-openstackclient python-glanceclient python-neutronclient
+```
+
+2. Opensatack需要Openrc文件用于admin或普通用户的认证
+生成此文件
+```
+kolla-ansible post-deploy
+. /etc/kolla/admin-openrc.sh
+```
+
+3. 根据安装Kolla-Asibel的不同方式，将长生运行脚本
+
+```
+. /usr/share/kolla-ansible/init-runonce
+```
+
 
 参考文献：
 []()https://docs.openstack.org/kolla-ansible/latest/user/quickstart.html
