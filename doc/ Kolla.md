@@ -118,6 +118,49 @@ localhost       ansible_connection=local become=true
 ```
 ansible -i multinode all -m ping
 ```
+### Kolla密码
+部署中使用的密码存储在/etc/kolla/Passwords.yml文件。所有密码在此文件是空白的，必须手动填写或运行随机密码发生器
+对于部署环境运行:
+```
+kolla-genpwd
+```
 
+
+### Kolla globals.yml
+
+globals.yml是Kolla-Ansible主要的配置文件.在部署Kolla-Ansible之前，有很多选项
+
+* 镜像选择
+
+用户需要选择其用于部署的镜像。用户必须指定要用于部署的映像。在本指南中，[DockerHub](ttps://hub.docker.com/u/kolla/)提供了预构建的映像。要了解更多关于构建机制的信息，请参考映像[构建文档](https://docs.openstack.org/kolla/latest/admin/image-building.html。)
+其提供了多种镜像选择，包括多个不同的Linux 发行版本。
+```
+kolla_base_distro: "centos"
+```
+需要设置安装方式
+    * binary：
+  使用像apt或yum这样的存储库源
+    * source：
+  git存储库或本地源目录(此方式更为可靠)
+
+```
+kolla_install_type: "source"
+```
+
+使用DockerHub镜像，则默认镜像需要被重写，镜像以发布版本名称作为标签，例如，使用Pike镜像需要被设置为：
+```
+openstack_release: "pike"
+```
+
+使用与kolla-ansible相同版本的图像很重要。这意味着如果pip被用来安装kolla-ansible，这意味着它是最新的稳定版本，所以openstack版本应该设置为queens。如果git与master branch一起使用，DockerHub还提供了master branch的日常构建(标记为master):
+```
+openstack_release: "master"
+```
+
+* 网络设置
+
+Kolla-Ansible需要设置一些网络选项。我们需要设置OpenStack使用的网络接口。需要设置的第一个接口是“network_interface”。这是multiple管理类型网络的默认接口。
+
+参考文献：
 []()https://docs.openstack.org/kolla-ansible/latest/user/quickstart.html
 []()http://xcodest.me/kolla-aio-install.html
