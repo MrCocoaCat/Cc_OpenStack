@@ -92,6 +92,16 @@ Pacemaker附带了大量的OCF代理(例如管理MySQL数据库、虚拟IP地址
 
 ![](assets/markdown-img-paste-20180907133746722.png)
 
+
+
+1. Heartbeat项目最初的消息通信层被独立为新的 Heartbeat项目，新的 Heartbeat只负责维护集群各节点的信息以及它们之间的心跳通信，通常将 Pacemaker与 Heartbeat或者 Corosync共同组成集群管理软件， Pacemaker利用Heartbeat或者Corosync提供的节点及节点之间的心跳信息来判断节点状态。
+2. Cluster Clue
+Cluster Clue 相当于一个中间层，它用来将Heartbeat和Pacemaker关联起来，主要包含两个部分，即本地资源管理器（Local Resource Manager，LRM）和Fencing设备（Shoot The Other Node In The Head，STONITH）
+3. Resource Agent
+资源代理（Resource Agent，RA）是用来控制服务的启停，监控服务状态的脚本集合，这些脚本会被位于本节点上的LRM调用从而实现各种资源的启动、停止、监控等操作。
+4. pacemaker
+Pacemaker是整个高可用集群的控制中心，用来管理整个集群的资源状态行为，客户端通过 pacemaker来配置、管理、监控整个集群的运行状态。Pacemaker是一个功能非常强大并支持众多操作系统的开源集群资源管理器，Pacemaker支持主流的 Linux系统，如 Redhat的 RHEL系列、 Fedora系列、 openSUSE系列、Debian系列、 Ubuntu系列和 centos系列，这些操作系统上都可以运行 Pacemaker并将其作为集群资源管理器。
+
 ##### 安装包
 
 在任何打算成为Pacemaker集群一部分的主机上，通过Corosync消息传递层建立集群通信。这涉及到安装以下包(以及包管理器通常自动安装的依赖包):
