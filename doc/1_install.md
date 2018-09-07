@@ -21,7 +21,7 @@
 IP   controller
 ```
 即 "IP地址，域名，主机名"
-其中域名可以省略，不要删除127.0.0.1项。
+**其中域名可以省略，不要删除127.0.0.1项**
 > *192.168.125.115   controller*
 
 #### 网络时间同步协议(NTP)
@@ -31,7 +31,7 @@ yum install chrony
 ```
 
 2. 编辑chrony.conf文件
-在/etc/chrony.conf文件中写入以下内容
+vim /etc/chrony.conf 文件中写入以下内容
 
 ```
 server NTP_SERVER iburst
@@ -55,7 +55,7 @@ systemctl start chronyd.service
 ```
 
 #### SQL 数据库
-大多数OpenStack服务使用SQL数据库来存储信息。数据库通常在controller节点上运行。本指南中的过程根据发行版使用MariaDB或MySQL。
+大多数OpenStack服务使用SQL数据库来存储信息。数据库通常在controller节点上运行。本指南中使用MariaDB。
 
 1. 安装相应软件包
 
@@ -105,8 +105,9 @@ mysql_secure_installation
 
 #### 安装openstack相关包
 1. 安装包
+
 ```
-yum install centos-release-openstack-queens
+yum install centos-release-openstack-queens -y
 ```
 
 2. 更新软件包
@@ -115,40 +116,49 @@ yum upgrade
 ```
 
 3. 安装OpenStack client
+
 ```
-yum install python-openstackclient
+yum install python-openstackclient -y
 ```
 
-4. RHEL and CentOS 默认启动了 SELinux 安装openstack-selinux为openstack服务器自动管理安全策略
+4. RHEL and CentOS 默认启动了SELinux，安装openstack-selinux为openstack安全策略进行管理
+
 ```
 yum install openstack-selinux
 ```
+
 ####　消息队列RabbitMQ
 OpenStack使用消息队列来协调服务之间的操作和状态信息。
-消息队列服务通常在**控制器节点**上运行。OpenStack支持多个消息队列服务，包括RabbitMQ、Qpid和ZeroMQ。但是，大多数penStack的发行版都支持特定的消息队列服务。因为大多数发行版均支持RabbitMQ消息队列服务，故安装RabbitMQ消息队列
+消息队列服务通常在 **控制器节点** 上运行。OpenStack支持多个消息队列服务，包括RabbitMQ、Qpid和ZeroMQ。但是，大多数penStack的发行版都支持特定的消息队列服务。因为大多数发行版均支持RabbitMQ消息队列服务，故安装RabbitMQ消息队列
 
 1. 安装包
+
 ```
 yum install rabbitmq-server
 ```
 
 2. 启动消息队列并设置为开机启动
+
 ```
 systemctl enable rabbitmq-server.service
 systemctl start rabbitmq-server.service
 ```
 3. 添加openstack用户
+
 ```
 rabbitmqctl add_user openstack RABBIT_PASS
 ```
-RABBIT_PASS 替换为合适的密码
+
+>RABBIT_PASS 替换为合适的密码
 
 4. 许可设定，未openstack用户添加读写权限
+
 ```
 rabbitmqctl set_permissions openstack ".*" ".*" ".*"
 ```
 
 #### 安装Memcached
+
 服务的身份服务身份验证机制使用Memcached缓存令牌。memcached服务通常在**控制器节点**上运行。
 
 1. 安装相应软件包
@@ -156,7 +166,8 @@ rabbitmqctl set_permissions openstack ".*" ".*" ".*"
 yum install memcached python-memcached
 ```
 
-2. 编写文件/etc/sysconfig/memcached
+2. vim /etc/sysconfig/memcached
+
 确定服务使用的是controller节点的management　IP地址,以使其他节点可以通过management网络访问控制节点
 
 ```
@@ -171,15 +182,19 @@ OPTIONS="-l 127.0.0.1,::1,controller"
 systemctl enable memcached.service
 systemctl start memcached.service
 ```
+
 #### Etcd
+
 OpenStack服务可以使用Etcd，这是一种分布式可靠的键值存储，用于分布式键锁定、存储配置、跟踪服务实时性和其他场景。
 1. 安装相应软件包
 ```
 yum install etcd
 ```
-2. 编写/etc/etcd/etcd.conf 文件并设置以下字段  ETCD_INITIAL_CLUSTER, ETCD_INITIAL_ADVERTISE_PEER_URLS, ETCD_ADVERTISE_CLIENT_URLS, ETCD_LISTEN_CLIENT_URLS．使其他节点可以连接值管理网络
+2. vim /etc/etcd/etcd.conf
+并设置以下字段  ETCD_INITIAL_CLUSTER, ETCD_INITIAL_ADVERTISE_PEER_URLS, ETCD_ADVERTISE_CLIENT_URLS, ETCD_LISTEN_CLIENT_URLS．使其他节点可以连接值管理网络
 ```
 #[Member]
+
 ETCD_DATA_DIR="/var/lib/etcd/default.etcd"
 ETCD_LISTEN_PEER_URLS="http://192.168.125.115:2380"
 ETCD_LISTEN_CLIENT_URLS="http://192.168.125.115:2379"
@@ -191,7 +206,7 @@ ETCD_INITIAL_CLUSTER="controller=http://192.168.125.115:2380"
 ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster-01"
 ETCD_INITIAL_CLUSTER_STATE="new"
 ```
-其中10.0.0.11为控制节点的网络，需改成自己的IP地址
+其中192.168.125.115为控制节点的网络，需改成自己的IP地址
 
 3. 启动服务
 ```
