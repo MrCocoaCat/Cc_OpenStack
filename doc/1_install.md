@@ -1,3 +1,5 @@
+https://docs.openstack.org/install-guide/openstack-services.html
+
 利用Devstack 可以安装快速openstack，但为了更好的理清openstack，本文使用手动安装。
 参考[](https://docs.openstack.org/install-guide/)
 安装版本为**Queue** 版本，最小的openstack需安装以下组件：

@@ -43,10 +43,13 @@ MariaDB [(none)]> GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'%' \
 
 3. 要创建服务凭据
 
-* 创建glance user
+* 创建glance用户
 
 ```
-openstack user create --domain default --password-prompt glance
+$ openstack user create --domain default --password-prompt glance
+
+User Password:
+Repeat User Password:
 +---------------------+----------------------------------+
 | Field               | Value                            |
 +---------------------+----------------------------------+
@@ -60,7 +63,7 @@ openstack user create --domain default --password-prompt glance
 
 ```
 
-* 把admin用户添加到glance用户和项目中
+* 把admin角色添加到glance用户和service项目中
 ```
 openstack role add --project service --user glance admin
 ```
@@ -82,7 +85,7 @@ $ openstack service create --name glance \
 +-------------+----------------------------------+
 ```
 
-4. 创建镜像服务API端点
+4. 创建glance服务的API endpoints
 
 ```
 $ openstack endpoint create --region RegionOne \
@@ -143,7 +146,7 @@ $ openstack endpoint create --region RegionOne \
 ```
 yum install openstack-glance
 ```
-2. 编辑 /etc/glance/glance-api.conf 文件进行如下操作：
+2. vim /etc/glance/glance-api.conf 文件进行如下操作：
 
 * 在[database]字段, 设置数据库权限:
 ```
@@ -178,8 +181,9 @@ flavor = keystone
 stores = file,http
 default_store = file
 filesystem_store_datadir = /var/lib/glance/images/
+
 ```
-3. 编写 /etc/glance/glance-registry.conf 文件并完成以下操作
+3. vim /etc/glance/glance-registry.conf 文件并完成以下操作
 
 * 在 [database]字段, 设置数据库接入
 
