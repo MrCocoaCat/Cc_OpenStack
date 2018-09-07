@@ -21,9 +21,13 @@ NAME=eno16777736            # 网络接口名称，即配置文件名后半部�
 DEVICE=ens33                # 网卡设备名称
 ONBOOT=no                   # 是否开机启动， 要想网卡开机就启动或通过 `systemctl restart network`控制网卡,必须设置为 `yes`
 
+### 重启网卡
+
+service network restart
 
 ### DNS
 
 配置文件 /etc/resolv.conf
 
 nameserver 8.8.8.8
+nameserver 159.226.8.7

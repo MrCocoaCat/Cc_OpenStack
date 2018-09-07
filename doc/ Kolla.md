@@ -2,6 +2,18 @@
 ##安装Kolla
 ### 环境依赖准备
 
+>这里 注意，需要设置docker为mountflag=share(文档里没有提，但是prechecks的时候会报错)
+mkdir /etc/systemd/system/docker.service.d
+tee /etc/systemd/system/docker.service.d/kolla.conf << 'EOF'
+[Service]
+MountFlags=shared
+EOF
+systemctl daemon-reloadsystemctl enable docker
+systemctl restart docker
+/
+
+
+
 1. 更新依赖
 
 ```
@@ -119,7 +131,14 @@ localhost       ansible_connection=local become=true
 ansible -i multinode all -m ping
 ```
 ### Kolla密码
-部署中使用的密码存储在/etc/kolla/Passwords.yml文件。所有密码在此文件是空白的，必须手动填写或运行随机密码发生器
+部署中使用的密码存储在/etc/kolla/passwords.yml文件。所有密码在此文件是空白的，必须手动填写
+
+这里仅设定管理员的登陆密码：
+```
+keystone_admin_password: fanguiju
+```
+
+或运行随机密码发生器
 对于部署环境运行:
 ```
 kolla-genpwd
@@ -130,10 +149,11 @@ kolla-genpwd
 
 globals.yml是Kolla-Ansible主要的配置文件.在部署Kolla-Ansible之前，有很多选项
 
+
 * 镜像选择
 
-用户需要选择其用于部署的镜像。用户必须指定要用于部署的映像。在本指南中，[DockerHub](ttps://hub.docker.com/u/kolla/)提供了预构建的映像。要了解更多关于构建机制的信息，请参考映像[构建文档](https://docs.openstack.org/kolla/latest/admin/image-building.html。)
-其提供了多种镜像选择，包括多个不同的Linux 发行版本。
+用户需要选择其用于部署的镜像。用户必须指定要用于部署的映像。在本指南中，[DockerHub](https://hub.docker.com/u/kolla/)提供了预构建的映像。要了解更多关于构建机制的信息，请参考映像[构建文档](https://docs.openstack.org/kolla/latest/admin/image-building.html。)
+其提供了多种镜像选择，包括多个不同的Linux发行版本。
 ```
 kolla_base_distro: "centos"
 ```
@@ -151,8 +171,10 @@ kolla_install_type: "source"
 ```
 openstack_release: "pike"
 ```
+>"queens"
 
-使用与kolla-ansible相同版本的图像很重要。这意味着如果pip被用来安装kolla-ansible，这意味着它是最新的稳定版本，所以openstack版本应该设置为queens。如果git与master branch一起使用，DockerHub还提供了master branch的日常构建(标记为master):
+使用与kolla-ansible相同版本的图像很重要。这意味着如果pip被用来安装kolla-ansible，这意味着它是最新的稳定版本，所以openstack版本应该设置为queens。
+如果git与master branch一起使用，DockerHub还提供了master branch的日常构建(标记为master):
 ```
 openstack_release: "master"
 ```
@@ -172,12 +194,14 @@ neutron_external_interface: "eth1"
 [Network overview](https://docs.openstack.org/kolla-ansible/latest/admin/production-architecture-guide.html#network-configuration)
 
 之后需要为管理者提供浮动IP,这个IP将由keepalived管理以提供高可用性，并且应该设置为在连接到network_interface的管理网络中不使用地址。
+kolla_internal_vip_address：指定 HAProxy 虚拟 IP，单点部署可以弃用 HAProxy enable_haproxy: "no"。  
 
 ```
 kolla_internal_vip_address: "10.1.0.250"
 ```
 
 默认情况下，Kolla-Ansible提供了一个纯粹的计算套件，但它确实为大量的额外服务提供了支持。要启用它们，请将enable_*设置为“yes”。例如，要启用块存储服务:
+
 ```
 enable_cinder: "yes"
 ```
@@ -220,6 +244,28 @@ kolla-ansible post-deploy
 ```
 
 
+>kolla pike 版本安装时 Checking docker SDK version 问题解决
+2018年02月01日 22:40:17 阅读数：518更多
+个人分类： kolla OpenStack
+所属专栏： OpenStack
+版权声明：欢迎转载，但要注明原文链接。 https://blog.csdn.net/dylloveyou/article/details/79234149
+我们在安装kolla pike版本的时候，可能会遇到这个问题：
+TASK [prechecks : Checking docker SDK version] ****************************************************************************************************************************
+skipping: [localhost]
+fatal: [controller1]: FAILED! => {"changed": false, "cmd": ["/usr/bin/python", "-c", "import docker; print docker.__version__"], "delta": "0:00:00.182236", "end": "2018-01-31 22:07:53.803688", "failed_when_result": true, "rc": 0, "start": "2018-01-31 22:07:53.621452", "stderr": "", "stderr_lines": [], "stdout": "1.10.6", "stdout_lines": ["1.10.6"]}
+fatal: [compute1]: FAILED! => {"changed": false, "cmd": ["/usr/bin/python", "-c", "import docker; print docker.__version__"], "delta": "0:00:00.178623", "end": "2018-01-31 22:07:55.837354", "failed_when_result": true, "rc": 0, "start": "2018-01-31 22:07:55.658731", "stderr": "", "stderr_lines": [], "stdout": "1.10.6", "stdout_lines": ["1.10.6"]}
+这是因为我们安装的Docker Python版本较低造成的(kolla ocata版本没有此问题)。
+我们可以看到docker python 版本号是 1.10.6。
+[root@compute1 ~]# yum list installed | grep python-docker-py
+python-docker-py.noarch               1.10.6-3.el7                   @extras    
+python-docker-pycreds.noarch          1.10.6-3.el7                   @extras
+而从官方文档上可以查到，docker python版本需要2.0.0以上：
+这里写图片描述
+我们先删除掉旧的版本。
+[root@compute1 ~]# yum remove python-docker-py
+然后用pip安装最新的版本。
+[root@compute1 ~]# pip install -U docker
+问题就解决了。
 
 
 参考文献：
