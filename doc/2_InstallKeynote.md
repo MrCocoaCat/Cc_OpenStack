@@ -18,7 +18,7 @@ MariaDB [(none)]> GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'%' \
 IDENTIFIED BY 'KEYSTONE_DBPASS';
 ```
 可将其中的KEYSTONE_DBPASS替换为合适的密码
-使用如下命令可以差数据库状态
+使用如下命令可以查看数据库状态
 ```
 MariaDB [(none)]> show databases;
 ```
@@ -67,6 +67,7 @@ keystone-manage bootstrap --bootstrap-password ADMIN_PASS \
 
 ```
 将ADMIN_PASS替换为合适的密码
+
 ##### 配置Apache HTTP 服务
 
 1. 编辑 /etc/httpd/conf/httpd.conf 文件并且配置ServerName
