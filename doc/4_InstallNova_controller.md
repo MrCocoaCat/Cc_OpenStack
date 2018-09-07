@@ -1,3 +1,34 @@
+### Overview
+
+OpenStack项目是一个开源的云计算平台，支持所有类型的云环境。该项目旨在实现简单的实现、大规模的可伸缩性和丰富的特性集。来自世界各地的云计算专家为这个项目做出了贡献。
+
+OpenStack通过各种补充服务提供了一个基础设施即服务(IaaS)解决方案。每个服务都提供了一个应用程序编程接口(API)来促进这种集成。
+
+本指南介绍了使用适合具有足够Linux经验的OpenStack新用户的功能示例体系结构逐步部署主要OpenStack服务的过程。本指南不打算用于生产系统安装，而是创建一个最小的概念验证，以学习OpenStack。
+
+在熟悉了这些OpenStack服务的基本安装、配置、操作和故障排除之后，您应该考虑使用生产体系结构进行部署的以下步骤:
+* 确定并实现必要的核心和可选服务，以满足性能和冗余需求。
+
+* 使用防火墙、加密和服务策略等方法提高安全性。
+
+* 实现部署工具，如Ansible、Chef、Puppet或Salt，以自动化生产环境的部署和管理
+### Example architecture
+
+示例体系结构需要至少两个节点(主机)才能启动基本虚拟机(VM)或实例。可选服务(如块存储和对象存储)需要额外的节点。
+
+这个示例体系结构与最小生产体系结构的区别如下:
+
+* 网络代理驻留在控制器节点上，而不是一个或多个专用网络节点。
+
+* 用于自助网络的覆盖(隧道)流量通过管理网络而不是专用网络。
+
+![](assets/markdown-img-paste-20180907221407513.png)
+
+### Hardware requirements
+
+https://docs.openstack.org/nova/queens/install/overview.html
+
+
 ### 安装Nova
 Nova提供在統一的計算資源抽象
 
@@ -21,16 +52,19 @@ MariaDB [(none)]> CREATE DATABASE nova_cell0;
 ```
 MariaDB [(none)]> GRANT ALL PRIVILEGES ON nova_api.* TO 'nova'@'localhost' \
   IDENTIFIED BY 'NOVA_DBPASS';
+
 MariaDB [(none)]> GRANT ALL PRIVILEGES ON nova_api.* TO 'nova'@'%' \
   IDENTIFIED BY 'NOVA_DBPASS';
 
 MariaDB [(none)]> GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'localhost' \
   IDENTIFIED BY 'NOVA_DBPASS';
+
 MariaDB [(none)]> GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'%' \
   IDENTIFIED BY 'NOVA_DBPASS';
 
 MariaDB [(none)]> GRANT ALL PRIVILEGES ON nova_cell0.* TO 'nova'@'localhost' \
   IDENTIFIED BY 'NOVA_DBPASS';
+
 MariaDB [(none)]> GRANT ALL PRIVILEGES ON nova_cell0.* TO 'nova'@'%' \
   IDENTIFIED BY 'NOVA_DBPASS';
 ```
@@ -61,7 +95,7 @@ Repeat User Password:
 
 ```
 
-* 把admin用户添加到nova用户和项目中
+* 把admin角色添加到nova用户和项目中
 ```
  openstack role add --project service --user nova admin
 ```
@@ -138,7 +172,7 @@ $ openstack endpoint create --region RegionOne \
 ```
 
 
-5. 创建一个placement服务用户
+5. 创建一个placement服务用户（Create a Placement service user using your chosen PLACEMENT_PASS:）
 
 ```
 $ openstack user create --domain default --password-prompt placement
@@ -157,7 +191,7 @@ Repeat User Password:
 +---------------------+----------------------------------+
 ```
 
-6. 添加placement用户为项目服务admin角色
+6. 添加placement用户为placement服务admin角色
 
 ```
 $ openstack role add --project service --user placement admin
@@ -183,6 +217,7 @@ $ openstack service create --name placement --description "Placement API" placem
 
 ```
 $ openstack endpoint create --region RegionOne placement public http://controller:8778
+
 +--------------+----------------------------------+
 | Field        | Value                            |
 +--------------+----------------------------------+
@@ -198,6 +233,7 @@ $ openstack endpoint create --region RegionOne placement public http://controlle
 +--------------+----------------------------------+
 
 $ openstack endpoint create --region RegionOne placement internal http://controller:8778
+
 +--------------+----------------------------------+
 | Field        | Value                            |
 +--------------+----------------------------------+
@@ -213,6 +249,7 @@ $ openstack endpoint create --region RegionOne placement internal http://control
 +--------------+----------------------------------+
 
 $ openstack endpoint create --region RegionOne placement admin http://controller:8778
+
 +--------------+----------------------------------+
 | Field        | Value                            |
 +--------------+----------------------------------+
@@ -287,6 +324,7 @@ password = NOVA_PASS
 [DEFAULT]
 # ...
 my_ip = 192.168.125.115
+
 ```
 
 * 在[DEFAULT]字段,开启网络服务
