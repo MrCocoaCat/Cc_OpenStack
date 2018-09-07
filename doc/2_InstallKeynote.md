@@ -105,7 +105,7 @@ $ export OS_AUTH_URL=http://controller:35357/v3
 $ export OS_IDENTITY_API_VERSION=3
 ```
 
-#####　创建用户
+####　创建用户
 身份服务为每个OpenStack服务提供身份验证服务。
 
 1. 创建默认domain
@@ -183,7 +183,7 @@ Repeat User Password:
 +---------------------+----------------------------------+
 
 ```
-
+> 0
 
 * Create the user role:
 ```
@@ -203,3 +203,34 @@ $ openstack role create user
 
  openstack role add --project demo --user demo user
 ```
+
+
+#### 验证操作 Verify operation
+
+在安装其他服务之前，验证身份服务的操作。
+
+1. 卸载临时OS_AUTH_URL和OS_PASSWORD环境变量:
+```
+unset OS_AUTH_URL OS_PASSWORD
+```
+2. 作为管理用户，请求一个身份验证令牌:
+
+```
+$ openstack --os-auth-url http://controller:35357/v3 \
+  --os-project-domain-name Default --os-user-domain-name Default \
+  --os-project-name admin --os-username admin token issue
+
+Password:
++------------+-----------------------------------------------------------------+
+| Field      | Value                                                           |
++------------+-----------------------------------------------------------------+
+| expires    | 2016-02-12T20:14:07.056119Z                                     |
+| id         | gAAAAABWvi7_B8kKQD9wdXac8MoZiQldmjEO643d-e_j-XXq9AmIegIbA7UHGPv |
+|            | atnN21qtOMjCFWX7BReJEQnVOAj3nclRQgAYRsfSU_MrsuWb4EDtnjU7HEpoBb4 |
+|            | o6ozsA_NmFWEpLeKy0uNn_WeKbAhYygrsmQGA49dclHVnz-OMVLiyM9ws       |
+| project_id | 343d245e850143a096806dfaefa9afdc                                |
+| user_id    | ac3377633149401296f6c0d92d79dc16                                |
++------------+-----------------------------------------------------------------+
+```
+
+>密码为： ADMIN_PASS

@@ -1,5 +1,20 @@
 ### 安装glance
-glance为虚拟机提供虚拟机的镜像服务，其本身不负责实际的存储
+glance为虚拟机提供虚拟机的镜像服务，其本身不负责实际的存储。
+OpenStack 的镜像服务 (glance) 允许用户发现、注册和恢复虚拟机镜像。它提供了一个 REST API，允许您查询虚拟机镜像的 metadata 并恢复一个实际的镜像。您可以存储虚拟机镜像通过不同位置的镜像服务使其可用，就像 OpenStack 对象存储那样从简单的文件系统到对象存储系统。
+
+* glance-api
+
+    Accepts Image API calls for image discovery, retrieval, and storage.
+* glance-registry
+
+    Stores, processes, and retrieves metadata about images. Metadata includes items such as size and type.
+* Database
+    Stores image metadata and you can choose your database depending on your preference. Most deployments use MySQL or SQLite.
+* Storage repository for image files
+    Various repository types are supported including normal file systems (or any filesystem mounted on the glance-api controller node), Object Storage, RADOS block devices, VMware datastore, and HTTP. Note that some repositories will only support read-only usage.
+    usage.
+* Metadata definition service
+    A common API for vendors, admins, services, and users to meaningfully define their own custom metadata. This metadata can be used on different types of resources like images, artifacts, volumes, flavors, and aggregates. A definition includes the new property’s key, description, constraints, and the resource types which it can be associated with.
 
 #####　安装必备条件
 
