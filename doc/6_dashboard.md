@@ -7,7 +7,7 @@
 ```
 yum install openstack-dashboard
 ```
-2. 编辑 /etc/openstack-dashboard/local_settings 文件
+2. vim  /etc/openstack-dashboard/local_settings 文件
 
 * 配置dashboard以使用OpenStack服务，在控制节点上
 ```

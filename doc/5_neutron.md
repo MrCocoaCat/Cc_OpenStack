@@ -214,16 +214,20 @@ demo程序或其他非特权用户可以管理自助服务网络，包括提供�
 Self-service网络通常使用覆盖网络。覆盖网络协议(如VXLAN)包括额外的头文件，增加开销并减少有效负载或用户数据的可用空间。在不了解虚拟网络基础结构的情况下，实例尝试使用默认的以太网最大传输单元(MTU)发送数据包，其大小为1500字节。
 网络服务通过DHCP自动为实例提供正确的MTU值。但是，有些云映像不使用DHCP或忽略DHCP MTU选项，需要使用元数据或脚本进行配置。
 
-#####使用选项2 进行配置
+***
+
+#### 使用选项2 进行配置
 * 安装组件
+
 ```
  yum install openstack-neutron openstack-neutron-ml2 \
   openstack-neutron-linuxbridge ebtables
 ```
 
-###### 配置服务组件
-编辑/etc/neutron/neutron.conf 文件
+##### 配置server组件
+vim /etc/neutron/neutron.conf 文件
   * 配置数据库权限，在[database]字段写入以下内容
+
 ```
 [database]
 # ...
@@ -291,8 +295,9 @@ password = NOVA_PASS
 ###### 配置 Modular Layer 2 (ML2) plug-in
 
  Modular Layer 2 (ML2) plug-in使用Linux桥接机制为实例构建第2层(桥接和交换)虚拟网络基础结构
-编辑 /etc/neutron/plugins/ml2/ml2_conf.ini 文件
+vim /etc/neutron/plugins/ml2/ml2_conf.ini 文件
 * 在ml2字段开启flat, VLAN, and VXLAN网络
+
 ```
 [ml2]
 # ...
@@ -371,12 +376,14 @@ enable_security_group = true
 firewall_driver = neutron.agent.linux.iptables_firewall.IptablesFirewallDriver
 ```
 * 确定  Linux 操作系统内核支持 network bridge filters by verifying all the following sysctl values are set to 1:
+>vim /etc/sysctl.conf
+
 ```
-net.bridge.bridge-nf-call-iptables
-net.bridge.bridge-nf-call-ip6tables
+net.bridge.bridge-nf-call-iptables=1
+net.bridge.bridge-nf-call-ip6tables=1
 ```
 ###### 配置 layer-3 agent
-编辑 /etc/neutron/l3_agent.ini 文件
+vim /etc/neutron/l3_agent.ini 文件
 * 在[DEFAULT] 字段, 配置 the Linux bridge interface driver and external network bridge:
 
 ```
@@ -397,7 +404,7 @@ dhcp_driver = neutron.agent.linux.dhcp.Dnsmasq
 enable_isolated_metadata = true
  ```
 
-
+***
 
 #####　配置metadata agent
 
@@ -413,7 +420,8 @@ metadata_proxy_shared_secret = METADATA_SECRET
 
 ##### 配置 Compute service 以使用 Networking service
 
-编辑/etc/nova/nova.conf文件，加入以下内容
+vim /etc/nova/nova.conf文件，加入以下内容
+
 ```
 [neutron]
 # ...
@@ -466,3 +474,6 @@ su -s /bin/sh -c "neutron-db-manage --config-file /etc/neutron/neutron.conf \
 # systemctl enable neutron-l3-agent.service
 # systemctl start neutron-l3-agent.service
  ```
+
+
+https://docs.openstack.org/neutron/queens/install/controller-install-rdo.html
