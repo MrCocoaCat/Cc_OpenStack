@@ -276,7 +276,8 @@ yum install openstack-nova-api openstack-nova-conductor \
 
 ```
 
-2. 配置/etc/nova/nova.conf文件
+2. vim /etc/nova/nova.conf文件
+
 * 在[DEFAULT]字段中,设置API
 ```
 [DEFAULT]
@@ -344,6 +345,7 @@ enabled = true
 # ...
 server_listen = $my_ip
 server_proxyclient_address = $my_ip
+
 ```
 
 * 在[glance] 字段, 设置镜像服务API:
@@ -429,6 +431,7 @@ su -s /bin/sh -c "nova-manage db sync" nova
 # systemctl enable openstack-nova-api.service \
   openstack-nova-consoleauth.service openstack-nova-scheduler.service \
   openstack-nova-conductor.service openstack-nova-novncproxy.service
+  
 # systemctl start openstack-nova-api.service \
   openstack-nova-consoleauth.service openstack-nova-scheduler.service \
   openstack-nova-conductor.service openstack-nova-novncproxy.service
