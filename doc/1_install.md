@@ -17,7 +17,7 @@ https://docs.openstack.org/install-guide/openstack-services.html
 
 #### 设置主机名及IP
 
-1. 编辑 /etc/hosts
+1. vim /etc/hosts
 
 ```
 IP   controller

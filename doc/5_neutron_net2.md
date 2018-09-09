@@ -88,32 +88,25 @@ lock_path = /var/lib/neutron/tmp
 ###### 配置 Modular Layer 2 (ML2) plug-in
 
  Modular Layer 2 (ML2) plug-in使用Linux桥接机制为实例构建第2层(桥接和交换)虚拟网络基础结构
+
 vim /etc/neutron/plugins/ml2/ml2_conf.ini 文件
-* 在ml2字段开启flat, VLAN, and VXLAN网络
+
+* 在ml2字段
 
 ```
 [ml2]
 # ...
+
+#开启flat, VLAN, and VXLAN网络
 type_drivers = flat,vlan,vxlan
 
-```
-* 开启 VXLAN self-service 网络
-```
-[ml2]
-# ...
+#开启 VXLAN self-service 网络
 tenant_network_types = vxlan
-```
-* 在 [ml2] 字段, 开启  Linux bridge 及 layer-2 population mechanisms:
-```
-[ml2]
-# ...
-mechanism_drivers = linuxbridge,l2population
-```
 
-* 在 [ml2]字段, 开启 port security extension driver
-```
-[ml2]
-# ...
+# 在 [ml2] 字段, 开启  Linux bridge 及 layer-2 population mechanisms:
+mechanism_drivers = linuxbridge,l2population
+
+# 在 [ml2]字段, 开启 port security extension driver
 extension_drivers = port_security
 ```
 
@@ -139,7 +132,8 @@ enable_ipset = true
 ###### 配置 Linux bridge agent
 
 Linux bridge agent为实例构建第2层(桥接和交换)虚拟网络基础设施，并处理安全组。
-编辑 /etc/neutron/plugins/ml2/linuxbridge_agent.ini 文件
+
+*vim /etc/neutron/plugins/ml2/linuxbridge_agent.ini*
 
 * 在 [linux_bridge] 字段, 将提供者虚拟网络映射到提供者物理网络接口
 ```
@@ -147,7 +141,7 @@ Linux bridge agent为实例构建第2层(桥接和交换)虚拟网络基础设�
 physical_interface_mappings = provider:PROVIDER_INTERFACE_NAME
 
 ```
- 将PROVIDER_INTERFACE_NAME 替换  为提供底层网络服务的物理网络端口名称
+ **将PROVIDER_INTERFACE_NAME 替换  为提供底层网络服务的物理网络端口名称**
 
 > physical_interface_mappings = provider:ens3
 
@@ -159,7 +153,8 @@ enable_vxlan = true
 local_ip = OVERLAY_INTERFACE_IP_ADDRESS
 l2_population = true
 ```
-将OVERLAY_INTERFACE_IP_ADDRESS替换为自己的IP地址
+**将OVERLAY_INTERFACE_IP_ADDRESS替换为自己的IP地址**
+>192.168.125.207
 
 * 在 [securitygroup] 字段, enable security groups and configure the Linux bridge iptables firewall driver:
 ```
@@ -169,6 +164,7 @@ enable_security_group = true
 firewall_driver = neutron.agent.linux.iptables_firewall.IptablesFirewallDriver
 ```
 * 确定  Linux 操作系统内核支持 network bridge filters by verifying all the following sysctl values are set to 1:
+
 >vim /etc/sysctl.conf
 
 ```
