@@ -7,9 +7,11 @@
 ```
 yum install openstack-dashboard
 ```
+
 2. vim  /etc/openstack-dashboard/local_settings 文件
 
 * 配置dashboard以使用OpenStack服务，在控制节点上
+
 ```
 OPENSTACK_HOST = "controller"
 ```
@@ -38,6 +40,13 @@ CACHES = {
 OPENSTACK_KEYSTONE_URL = "http://%s:5000/v3" % OPENSTACK_HOST
 ```
 
+* Enable support for domains:
+
+```
+OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = True
+```
+
+
 * 配置API版本
 
 ```
@@ -60,6 +69,28 @@ OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = "Default"
 ```
 OPENSTACK_KEYSTONE_DEFAULT_ROLE = "user"
 
+```
+
+
+* 如果选择 **networking option 1**, disable support for layer-3 networking services:
+```
+OPENSTACK_NEUTRON_NETWORK = {
+    ...
+    'enable_router': False,
+    'enable_quotas': False,
+    'enable_distributed_router': False,
+    'enable_ha_router': False,
+    'enable_lb': False,
+    'enable_firewall': False,
+    'enable_vpn': False,
+    'enable_fip_topology_check': False,
+}
+
+```
+
+* Optionally, configure the time zone:
+```
+TIME_ZONE = "TIME_ZONE"
 ```
 
 3. 配置

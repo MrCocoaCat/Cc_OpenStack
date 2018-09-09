@@ -32,12 +32,12 @@ IP   controller
 yum install chrony
 ```
 
-2. 编辑chrony.conf文件
-vim /etc/chrony.conf 文件中写入以下内容
+2. vim /etc/chrony.conf 文件中写入以下内容
 
 ```
 server NTP_SERVER iburst
 ```
+
 NTP_SERVER 为主机名或IP地址
 > *server 192.168.125.115 iburst*
 
