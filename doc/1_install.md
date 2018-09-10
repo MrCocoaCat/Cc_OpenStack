@@ -162,7 +162,9 @@ rabbitmqctl add_user openstack RABBIT_PASS
 4. 许可设定，未openstack用户添加读写权限
 
 ```
+
 rabbitmqctl set_permissions openstack ".*" ".*" ".*"
+
 ```
 
 #### 安装Memcached
@@ -221,3 +223,7 @@ ETCD_INITIAL_CLUSTER_STATE="new"
 systemctl enable etcd
 systemctl start etcd
 ```
+
+
+
+[中文文档](https://docs.openstack.org/liberty/zh_CN/install-guide-rdo/common/conventions.html)

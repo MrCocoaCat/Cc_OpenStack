@@ -14,14 +14,18 @@ MariaDB [(none)]> CREATE DATABASE keystone;
 >grant 权限1,权限2,…权限n on 数据库名称.表名称 to 用户名@用户地址 identified by ‘连接口令’;
 
 ```
-MariaDB [(none)]> GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'localhost' \
+MariaDB [(none)]> GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'localhost'
 IDENTIFIED BY 'KEYSTONE_DBPASS';
 
-MariaDB [(none)]> GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'%' \
+MariaDB [(none)]> GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'%'
 IDENTIFIED BY 'KEYSTONE_DBPASS';
 ```
+
 可将其中的KEYSTONE_DBPASS替换为合适的密码
+
 使用如下命令可以查看数据库状态
+
+
 ```
 MariaDB [(none)]> show databases;
 ```
@@ -33,26 +37,27 @@ yum install openstack-keystone httpd mod_wsgi
 ```
 2. vim /etc/keystone/keystone.conf 文件并完善以下字段
 
-* 在[database]字段中, 设置数据库权限:
 ```
 [database]
-# ...
+# 在[database]字段中, 设置数据库权限:
 connection = mysql+pymysql://keystone:KEYSTONE_DBPASS@controller/keystone
+
+[token]
+# 在 [token]字段中, 配置令牌提供者:
+provider = fernet
 ```
 >
 将KEYSTONE_DBPASS 换成自己的database密码
-* 在 [token]字段中, 配置令牌提供者:
-```
-[token]
-# ...
-provider = fernet
-```
+
 3. 填充标识服务数据库
 
 ```
 su -s /bin/sh -c "keystone-manage db_sync" keystone
 ```
 >su -s 指定执行的shell 即指定为/bin/sh
+
+
+
 
 
 4. 初始化Fernet密钥存储库
@@ -103,13 +108,17 @@ systemctl start httpd.service
 $ export OS_USERNAME=admin
 $ export OS_PASSWORD=ADMIN_PASS
 $ export OS_PROJECT_NAME=admin
+
 $ export OS_USER_DOMAIN_NAME=Default
 $ export OS_PROJECT_DOMAIN_NAME=Default
+
 $ export OS_AUTH_URL=http://controller:35357/v3
 $ export OS_IDENTITY_API_VERSION=3
+
 ```
 
 ####　创建用户
+
 身份服务为每个OpenStack服务提供身份验证服务。
 
 1. 创建默认domain
@@ -130,6 +139,7 @@ $ openstack domain create --description "An Example Domain" example
 
 ```
 2. 本指南使用一个服务项目，该项目为您添加到环境中的每个服务包含一个惟一的用户。创建创建service project
+
 ```
 $ openstack project create --domain default \
   --description "Service Project" service
@@ -150,6 +160,7 @@ $ openstack project create --domain default \
 3. 常规(非管理)任务应该使用非特权项目和用户。作为示例，本指南创建演示项目和使用
 
 * 创建demo project:
+
 ```
 $ openstack project create --domain default \
   --description "Demo Project" demo
@@ -203,6 +214,7 @@ $ openstack role create user
 ```
 
 * Add the user role to the demo project and user:
+
 ```
 
  openstack role add --project demo --user demo user
@@ -214,9 +226,11 @@ $ openstack role create user
 在安装其他服务之前，验证身份服务的操作。
 
 1. 卸载临时OS_AUTH_URL和OS_PASSWORD环境变量:
+
 ```
 unset OS_AUTH_URL OS_PASSWORD
 ```
+
 2. 作为管理用户，请求一个身份验证令牌:
 
 ```
