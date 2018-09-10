@@ -27,6 +27,7 @@ IP   controller
 > *192.168.125.115   controller*
 
 #### 网络时间同步协议(NTP)
+
 1. 安装包
 ```
 yum install chrony
@@ -40,6 +41,9 @@ server NTP_SERVER iburst
 
 NTP_SERVER 为主机名或IP地址
 > *server 192.168.125.115 iburst*
+
+
+>其他节点：server controller iburst
 
 3. 保证其他服务节点可以访问控制节点的chrony daemon,需要在同一个chrony.conf文件中写入以下内容
 
@@ -55,6 +59,31 @@ allow 10.0.0.0/24
 systemctl enable chronyd.service
 systemctl start chronyd.service
 ```
+#### 安装openstack相关包
+1. 安装包
+
+```
+yum install centos-release-openstack-queens -y
+```
+
+2. 更新软件包
+```
+yum upgrade
+```
+
+3. 安装OpenStack client
+
+```
+yum install python-openstackclient -y
+```
+
+4. RHEL and CentOS 默认启动了SELinux，安装openstack-selinux为openstack安全策略进行管理
+
+```
+yum install openstack-selinux
+```
+
+
 
 #### SQL 数据库
 大多数OpenStack服务使用SQL数据库来存储信息。数据库通常在controller节点上运行。本指南中使用MariaDB。
@@ -105,29 +134,6 @@ mysql_secure_installation
 
 [SQL database](https://docs.openstack.org/install-guide/environment-sql-database.html)
 
-#### 安装openstack相关包
-1. 安装包
-
-```
-yum install centos-release-openstack-queens -y
-```
-
-2. 更新软件包
-```
-yum upgrade
-```
-
-3. 安装OpenStack client
-
-```
-yum install python-openstackclient -y
-```
-
-4. RHEL and CentOS 默认启动了SELinux，安装openstack-selinux为openstack安全策略进行管理
-
-```
-yum install openstack-selinux
-```
 
 ####　消息队列RabbitMQ
 OpenStack使用消息队列来协调服务之间的操作和状态信息。
